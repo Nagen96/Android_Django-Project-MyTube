@@ -24,9 +24,10 @@ interface RetrofitService {
 
     @POST("comment/upload/")
     @FormUrlEncoded
-    fun commentUpload(
+    fun uploadComment(
         @Field("token") token: String,
-        @Field("comment") commentText: String
+        @Field("comment") commentText: String,
+        @Field("url") url: String
     ): Call<Comment>
 
     @GET("comment/view/")

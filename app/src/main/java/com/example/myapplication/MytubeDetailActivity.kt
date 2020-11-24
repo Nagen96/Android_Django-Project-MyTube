@@ -2,7 +2,6 @@ package com.example.myapplication
 
 import android.app.Activity
 import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -25,7 +24,7 @@ class MytubeDetailActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_mytube_detail)
 
-        var url = intent.getStringExtra("video_url")
+        val url = intent.getStringExtra("video_url")
         video_view.setVideoPath(url)
         video_view.start()
         video_view.requestFocus()
@@ -36,12 +35,12 @@ class MytubeDetailActivity : AppCompatActivity() {
         initView(this@MytubeDetailActivity)
 
         sendBtn.setOnClickListener {
-            val comment = commentEditText.text.toString()
+            var comment = commentEditText.text.toString()
             if ((application as MasterApplication).checkIsLogin()) {
                 val sp = getSharedPreferences("login_sp", Context.MODE_PRIVATE)
                 val token = sp.getString("login_sp", "null")
 
-                (application as MasterApplication).service.commentUpload(token!!, comment)
+                (application as MasterApplication).service.uploadComment(token!!, comment, url)
                     .enqueue(object : Callback<Comment> {
                         override fun onResponse(
                             call: Call<Comment>,
