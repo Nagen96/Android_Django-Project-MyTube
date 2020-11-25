@@ -22,10 +22,10 @@ class MasterApplication : Application() {
         createRetrofit()
         // chrome://inspect/#devices
 
-        var commentRetrofit = Retrofit.Builder().baseUrl("http://222.99.45.40:8080")
-            .addConverterFactory(GsonConverterFactory.create()).build()
-
-        commentService = commentRetrofit.create(RetrofitService::class.java)
+//        var commentRetrofit = Retrofit.Builder().baseUrl("http://222.99.45.40:8080")
+//            .addConverterFactory(GsonConverterFactory.create()).build()
+//
+//        commentService = commentRetrofit.create(RetrofitService::class.java)
     }
 
 

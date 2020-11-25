@@ -5,10 +5,12 @@ import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.accessibility.AccessibilityManagerCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.activity_mytube_detail.*
@@ -21,6 +23,7 @@ class MytubeDetailActivity : AppCompatActivity() {
     lateinit var commentEditText: EditText
     lateinit var sendBtn: Button
     lateinit var videoid: String
+    lateinit var deleteid: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,6 +40,23 @@ class MytubeDetailActivity : AppCompatActivity() {
         video_view.setMediaController(mediaController)
 
         initView(this@MytubeDetailActivity)
+
+        youtube_comment_recycler.addOnItemTouchListener(object : RecyclerView.OnItemTouchListener {
+            override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
+                val child = rv.findChildViewUnder(e.x, e.y)
+                val position = rv.getChildAdapterPosition(child!!)
+                Log.d("posss", "" + position)
+                return false
+            }
+
+            override fun onTouchEvent(rv: RecyclerView, e: MotionEvent) {
+
+            }
+
+            override fun onRequestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {
+
+            }
+        })
 
         sendBtn.setOnClickListener {
             var comment = commentEditText.text.toString()
@@ -90,18 +110,22 @@ class MytubeDetailActivity : AppCompatActivity() {
         }
         updateComment(videoid)
     }
+
     fun initView(activity: Activity) {
         commentEditText = activity.findViewById(R.id.comment_edit_text)
         sendBtn = activity.findViewById(R.id.send_btn)
     }
 
     fun updateComment(videoid: String) {
-        (application as MasterApplication).commentService.getComment(videoid).enqueue(
+        (application as MasterApplication).service.getComment(videoid).enqueue(
             object : Callback<ArrayList<Comment>> {
                 override fun onResponse(call: Call<ArrayList<Comment>>, response: Response<ArrayList<Comment>>) {
                     if (response.isSuccessful) {
                         val commentList = response.body()
-                        val adapter = CommentAdapter(commentList!!, LayoutInflater.from(this@MytubeDetailActivity))
+                        val adapter = CommentAdapter(
+                            commentList!!,
+                            LayoutInflater.from(this@MytubeDetailActivity)
+                        )
                         youtube_comment_recycler.adapter = adapter
                         youtube_comment_recycler.layoutManager = LinearLayoutManager(this@MytubeDetailActivity)
                     }
@@ -119,13 +143,22 @@ class MytubeDetailActivity : AppCompatActivity() {
         val inflater: LayoutInflater
     ) : RecyclerView.Adapter<CommentAdapter.ViewHolder>() {
 
+        lateinit var commentid: String
+
         inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             val commentId: TextView
             val commentText: TextView
+            val deleteBtn: Button
 
             init {
                 commentId = itemView.findViewById(R.id.youtube_comment_id)
                 commentText = itemView.findViewById(R.id.youtube_comment_text)
+                deleteBtn = itemView.findViewById(R.id.youtube_comment_delete)
+
+                deleteBtn.setOnClickListener {
+                    val value = commentList.get(position).commentid.toString()
+                    Log.d("iddd", "" + value)
+                }
             }
         }
 
@@ -141,8 +174,30 @@ class MytubeDetailActivity : AppCompatActivity() {
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             holder.commentId.setText(commentList.get(position).token)
             holder.commentText.setText(commentList.get(position).comment)
+            commentid = commentList.get(position).commentid.toString()
+        }
+
+
+    }
+
+    fun deleteComment(commentid: String) {
+        if ((application as MasterApplication).checkIsLogin()) {
+            val sp = getSharedPreferences("login_sp", Context.MODE_PRIVATE)
+            val token = sp.getString("login_sp", "null")
+
+            (application as MasterApplication).service.deleteComment(token!!, videoid, commentid)
+                .enqueue(object : Callback<Comment> {
+                    override fun onResponse(call: Call<Comment>, response: Response<Comment>) {
+                        if (response.isSuccessful) {
+
+                        }
+                    }
+
+                    override fun onFailure(call: Call<Comment>, t: Throwable) {
+
+                    }
+                })
         }
     }
 }
-
 

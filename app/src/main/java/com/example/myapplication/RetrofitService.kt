@@ -34,4 +34,11 @@ interface RetrofitService {
     fun getComment(
         @Path("videoid") videoid: String
     ): Call<ArrayList<Comment>>
+
+    @POST("comment/delete/")
+    fun deleteComment(
+        @Field("token") token: String,
+        @Field("videoid") videoid: String,
+        @Field("commentid") commentid: String
+    ): Call<Comment>
 }
