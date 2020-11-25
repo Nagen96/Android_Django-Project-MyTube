@@ -88,7 +88,7 @@ class MytubeDetailActivity : AppCompatActivity() {
             }
             commentEditText.text.clear()
         }
-//        updateComment(videoid)
+        updateComment(videoid)
     }
     fun initView(activity: Activity) {
         commentEditText = activity.findViewById(R.id.comment_edit_text)
@@ -96,7 +96,7 @@ class MytubeDetailActivity : AppCompatActivity() {
     }
 
     fun updateComment(videoid: String) {
-        (application as MasterApplication).commentService.getComment3(videoid).enqueue(
+        (application as MasterApplication).commentService.getComment(videoid).enqueue(
             object : Callback<ArrayList<Comment>> {
                 override fun onResponse(call: Call<ArrayList<Comment>>, response: Response<ArrayList<Comment>>) {
                     if (response.isSuccessful) {

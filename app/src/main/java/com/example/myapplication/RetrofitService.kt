@@ -30,17 +30,8 @@ interface RetrofitService {
         @Field("videoid") videoid: String
     ): Call<Comment>
 
-    @GET("comment/view/all")
+    @GET("comment/view/{videoid}/")
     fun getComment(
-    ): Call<ArrayList<Comment>>
-
-    @POST("comment/view/")
-    fun getComment2(
-        @Field("url") url: String
-    ): Call<ArrayList<Comment>>
-
-    @GET("comment/view/")
-    fun getComment3(
         @Path("videoid") videoid: String
     ): Call<ArrayList<Comment>>
 }
