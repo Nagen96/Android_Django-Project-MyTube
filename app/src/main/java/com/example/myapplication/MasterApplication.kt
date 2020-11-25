@@ -13,6 +13,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 class MasterApplication : Application() {
 
     lateinit var service: RetrofitService
+    lateinit var commentService: RetrofitService
 
     override fun onCreate() {
         super.onCreate()
@@ -21,30 +22,30 @@ class MasterApplication : Application() {
         createRetrofit()
         // chrome://inspect/#devices
 
-//        var retrofit = Retrofit.Builder().baseUrl("http://220.94.178.76:8080")
-//            .addConverterFactory(GsonConverterFactory.create()).build()
-//
-//        service = retrofit.create(RetrofitService::class.java)
+        var commentRetrofit = Retrofit.Builder().baseUrl("http://222.99.45.40:8080")
+            .addConverterFactory(GsonConverterFactory.create()).build()
+
+        commentService = commentRetrofit.create(RetrofitService::class.java)
     }
 
 
     fun createRetrofit() {
-        val header = Interceptor {
-            val original = it.request()
-            if (checkIsLogin()) {
-                getUserToken()?.let { token ->
-                    val requeset = original.newBuilder()
-                        .header("Authorization", "token " + token)
-                        .build()
-                    it.proceed(requeset)
-                }
-            } else {
-                it.proceed(original)
-            }
-        }
+//        val header = Interceptor {
+//            val original = it.request()
+//            if (checkIsLogin()) {
+//                getUserToken()?.let { token ->
+//                    val requeset = original.newBuilder()
+//                        .header("Authorization", "token " + token)
+//                        .build()
+//                    it.proceed(requeset)
+//                }
+//            } else {
+//                it.proceed(original)
+//            }
+//        }
 
         val client = OkHttpClient.Builder()
-            .addInterceptor(header)
+//            .addInterceptor(header)
             .addNetworkInterceptor(StethoInterceptor())
             .build()
 

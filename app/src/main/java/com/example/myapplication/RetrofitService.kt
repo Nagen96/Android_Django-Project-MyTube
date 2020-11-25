@@ -27,10 +27,20 @@ interface RetrofitService {
     fun uploadComment(
         @Field("token") token: String,
         @Field("comment") commentText: String,
-        @Field("url") url: String
+        @Field("videoid") videoid: String
     ): Call<Comment>
 
-    @GET("comment/view/")
+    @GET("comment/view/all")
     fun getComment(
+    ): Call<ArrayList<Comment>>
+
+    @POST("comment/view/")
+    fun getComment2(
+        @Field("url") url: String
+    ): Call<ArrayList<Comment>>
+
+    @GET("comment/view/")
+    fun getComment3(
+        @Path("videoid") videoid: String
     ): Call<ArrayList<Comment>>
 }

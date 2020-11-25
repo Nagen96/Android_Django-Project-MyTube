@@ -3,6 +3,7 @@ package com.example.myapplication
 import android.app.Activity
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,12 +20,15 @@ class MytubeDetailActivity : AppCompatActivity() {
 
     lateinit var commentEditText: EditText
     lateinit var sendBtn: Button
+    lateinit var videoid: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_mytube_detail)
 
         val url = intent.getStringExtra("video_url")
+        videoid = intent.getStringExtra("video_id")
+        Log.d("video_id", videoid)
         video_view.setVideoPath(url)
         video_view.start()
         video_view.requestFocus()
@@ -40,7 +44,7 @@ class MytubeDetailActivity : AppCompatActivity() {
                 val sp = getSharedPreferences("login_sp", Context.MODE_PRIVATE)
                 val token = sp.getString("login_sp", "null")
 
-                (application as MasterApplication).service.uploadComment(token!!, comment, url)
+                (application as MasterApplication).service.uploadComment(token!!, comment, videoid)
                     .enqueue(object : Callback<Comment> {
                         override fun onResponse(
                             call: Call<Comment>,
@@ -53,7 +57,7 @@ class MytubeDetailActivity : AppCompatActivity() {
                                     Toast.LENGTH_LONG
                                 )
                                     .show()
-                                updateComment()
+                                updateComment(videoid)
                             } else {
                                 Toast.makeText(
                                     this@MytubeDetailActivity,
@@ -84,16 +88,15 @@ class MytubeDetailActivity : AppCompatActivity() {
             }
             commentEditText.text.clear()
         }
-        updateComment()
+//        updateComment(videoid)
     }
-
     fun initView(activity: Activity) {
         commentEditText = activity.findViewById(R.id.comment_edit_text)
         sendBtn = activity.findViewById(R.id.send_btn)
     }
 
-    fun updateComment() {
-        (application as MasterApplication).service.getComment().enqueue(
+    fun updateComment(videoid: String) {
+        (application as MasterApplication).commentService.getComment3(videoid).enqueue(
             object : Callback<ArrayList<Comment>> {
                 override fun onResponse(call: Call<ArrayList<Comment>>, response: Response<ArrayList<Comment>>) {
                     if (response.isSuccessful) {
@@ -110,34 +113,36 @@ class MytubeDetailActivity : AppCompatActivity() {
             }
         )
     }
-}
 
-class CommentAdapter(
-    var commentList: ArrayList<Comment>,
-    val inflater: LayoutInflater
-) : RecyclerView.Adapter<CommentAdapter.ViewHolder>() {
+    class CommentAdapter(
+        var commentList: ArrayList<Comment>,
+        val inflater: LayoutInflater
+    ) : RecyclerView.Adapter<CommentAdapter.ViewHolder>() {
 
-    inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val commentId: TextView
-        val commentText: TextView
+        inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+            val commentId: TextView
+            val commentText: TextView
 
-        init {
-            commentId = itemView.findViewById(R.id.youtube_comment_id)
-            commentText = itemView.findViewById(R.id.youtube_comment_text)
+            init {
+                commentId = itemView.findViewById(R.id.youtube_comment_id)
+                commentText = itemView.findViewById(R.id.youtube_comment_text)
+            }
+        }
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            val view = inflater.inflate(R.layout.youtube_comment_view, parent, false)
+            return ViewHolder(view)
+        }
+
+        override fun getItemCount(): Int {
+            return commentList.size
+        }
+
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            holder.commentId.setText(commentList.get(position).token)
+            holder.commentText.setText(commentList.get(position).comment)
         }
     }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = inflater.inflate(R.layout.youtube_comment_view, parent, false)
-        return ViewHolder(view)
-    }
-
-    override fun getItemCount(): Int {
-        return commentList.size
-    }
-
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.commentId.setText(commentList.get(position).token)
-        holder.commentText.setText(commentList.get(position).comment)
-    }
 }
+
+

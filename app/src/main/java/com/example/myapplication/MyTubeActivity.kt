@@ -115,6 +115,7 @@ class MyTubeActivity : AppCompatActivity() {
                     val position: Int = adapterPosition
                     val intent = Intent(activity, MytubeDetailActivity::class.java)
                     intent.putExtra("video_url", youtubeList.get(position).video)
+                    intent.putExtra("video_id", youtubeList.get(position).videoid)
                     activity.startActivity(intent)
                 }
             }
