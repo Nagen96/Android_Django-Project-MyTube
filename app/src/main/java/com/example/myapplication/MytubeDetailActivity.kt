@@ -23,7 +23,8 @@ class MytubeDetailActivity : AppCompatActivity() {
     lateinit var commentEditText: EditText
     lateinit var sendBtn: Button
     lateinit var videoid: String
-    lateinit var deleteid: String
+    var commentidList = ArrayList<String>()
+    var deleteid: Int = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,23 +41,6 @@ class MytubeDetailActivity : AppCompatActivity() {
         video_view.setMediaController(mediaController)
 
         initView(this@MytubeDetailActivity)
-
-        youtube_comment_recycler.addOnItemTouchListener(object : RecyclerView.OnItemTouchListener {
-            override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
-                val child = rv.findChildViewUnder(e.x, e.y)
-                val position = rv.getChildAdapterPosition(child!!)
-                Log.d("posss", "" + position)
-                return false
-            }
-
-            override fun onTouchEvent(rv: RecyclerView, e: MotionEvent) {
-
-            }
-
-            override fun onRequestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {
-
-            }
-        })
 
         sendBtn.setOnClickListener {
             var comment = commentEditText.text.toString()
@@ -108,6 +92,11 @@ class MytubeDetailActivity : AppCompatActivity() {
             }
             commentEditText.text.clear()
         }
+
+        if (deleteid != -1) {
+            deleteComment(deleteid)
+        }
+
         updateComment(videoid)
     }
 
@@ -121,10 +110,14 @@ class MytubeDetailActivity : AppCompatActivity() {
             object : Callback<ArrayList<Comment>> {
                 override fun onResponse(call: Call<ArrayList<Comment>>, response: Response<ArrayList<Comment>>) {
                     if (response.isSuccessful) {
+                        commentidList.clear()
                         val commentList = response.body()
                         val adapter = CommentAdapter(
                             commentList!!,
-                            LayoutInflater.from(this@MytubeDetailActivity)
+                            LayoutInflater.from(this@MytubeDetailActivity),
+                            commentidList,
+//                            deleteid,
+                            this@MytubeDetailActivity
                         )
                         youtube_comment_recycler.adapter = adapter
                         youtube_comment_recycler.layoutManager = LinearLayoutManager(this@MytubeDetailActivity)
@@ -140,10 +133,14 @@ class MytubeDetailActivity : AppCompatActivity() {
 
     class CommentAdapter(
         var commentList: ArrayList<Comment>,
-        val inflater: LayoutInflater
+        val inflater: LayoutInflater,
+        var commentidList: ArrayList<String>,
+//        var deleteid: Int,
+        val context: MytubeDetailActivity
     ) : RecyclerView.Adapter<CommentAdapter.ViewHolder>() {
 
         lateinit var commentid: String
+        var deleteid: Int = -1
 
         inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             val commentId: TextView
@@ -156,8 +153,9 @@ class MytubeDetailActivity : AppCompatActivity() {
                 deleteBtn = itemView.findViewById(R.id.youtube_comment_delete)
 
                 deleteBtn.setOnClickListener {
-                    val value = commentList.get(position).commentid.toString()
-                    Log.d("iddd", "" + value)
+                    deleteid = commentList.get(position).commentid!!.toInt()
+                    Log.d("deleteid: ", "" + deleteid)
+                    context.deleteComment(deleteid)
                 }
             }
         }
@@ -175,21 +173,29 @@ class MytubeDetailActivity : AppCompatActivity() {
             holder.commentId.setText(commentList.get(position).token)
             holder.commentText.setText(commentList.get(position).comment)
             commentid = commentList.get(position).commentid.toString()
+            Log.d("iddd", "iddd: " + commentid)
+            commentidList.add(commentid)
         }
 
 
     }
 
-    fun deleteComment(commentid: String) {
+    fun deleteComment(deleteid: Int) {
         if ((application as MasterApplication).checkIsLogin()) {
             val sp = getSharedPreferences("login_sp", Context.MODE_PRIVATE)
             val token = sp.getString("login_sp", "null")
 
-            (application as MasterApplication).service.deleteComment(token!!, videoid, commentid)
+            (application as MasterApplication).service.deleteComment(token!!, videoid, deleteid)
                 .enqueue(object : Callback<Comment> {
                     override fun onResponse(call: Call<Comment>, response: Response<Comment>) {
                         if (response.isSuccessful) {
-
+                            this@MytubeDetailActivity.deleteid = -1
+                            Toast.makeText(
+                                this@MytubeDetailActivity,
+                                "덧글삭제 완료.",
+                                Toast.LENGTH_LONG
+                            )
+                                .show()
                         }
                     }
 

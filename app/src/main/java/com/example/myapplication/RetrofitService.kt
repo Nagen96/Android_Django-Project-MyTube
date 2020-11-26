@@ -36,9 +36,10 @@ interface RetrofitService {
     ): Call<ArrayList<Comment>>
 
     @POST("comment/delete/")
+    @FormUrlEncoded
     fun deleteComment(
         @Field("token") token: String,
         @Field("videoid") videoid: String,
-        @Field("commentid") commentid: String
+        @Field("commentid") commentid: Int
     ): Call<Comment>
 }
