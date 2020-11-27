@@ -41,5 +41,5 @@ interface RetrofitService {
         @Field("token") token: String,
         @Field("videoid") videoid: String,
         @Field("commentid") commentid: Int
-    ): Call<Comment>
+    ): Call<Response>
 }

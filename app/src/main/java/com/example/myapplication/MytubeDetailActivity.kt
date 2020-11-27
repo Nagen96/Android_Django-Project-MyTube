@@ -5,12 +5,10 @@ import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
-import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.accessibility.AccessibilityManagerCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.activity_mytube_detail.*
@@ -24,7 +22,6 @@ class MytubeDetailActivity : AppCompatActivity() {
     lateinit var sendBtn: Button
     lateinit var videoid: String
     var commentidList = ArrayList<String>()
-    var deleteid: Int = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -92,11 +89,6 @@ class MytubeDetailActivity : AppCompatActivity() {
             }
             commentEditText.text.clear()
         }
-
-        if (deleteid != -1) {
-            deleteComment(deleteid)
-        }
-
         updateComment(videoid)
     }
 
@@ -135,7 +127,6 @@ class MytubeDetailActivity : AppCompatActivity() {
         var commentList: ArrayList<Comment>,
         val inflater: LayoutInflater,
         var commentidList: ArrayList<String>,
-//        var deleteid: Int,
         val context: MytubeDetailActivity
     ) : RecyclerView.Adapter<CommentAdapter.ViewHolder>() {
 
@@ -173,7 +164,6 @@ class MytubeDetailActivity : AppCompatActivity() {
             holder.commentId.setText(commentList.get(position).token)
             holder.commentText.setText(commentList.get(position).comment)
             commentid = commentList.get(position).commentid.toString()
-            Log.d("iddd", "iddd: " + commentid)
             commentidList.add(commentid)
         }
 
@@ -186,23 +176,38 @@ class MytubeDetailActivity : AppCompatActivity() {
             val token = sp.getString("login_sp", "null")
 
             (application as MasterApplication).service.deleteComment(token!!, videoid, deleteid)
-                .enqueue(object : Callback<Comment> {
-                    override fun onResponse(call: Call<Comment>, response: Response<Comment>) {
+                .enqueue(object : Callback<com.example.myapplication.Response> {
+                    override fun onResponse(
+                        call: Call<com.example.myapplication.Response>,
+                        response: Response<com.example.myapplication.Response>
+                    ) {
                         if (response.isSuccessful) {
-                            this@MytubeDetailActivity.deleteid = -1
                             Toast.makeText(
                                 this@MytubeDetailActivity,
                                 "덧글삭제 완료.",
                                 Toast.LENGTH_LONG
                             )
                                 .show()
+                            updateComment(videoid)
                         }
                     }
 
-                    override fun onFailure(call: Call<Comment>, t: Throwable) {
-
+                    override fun onFailure(call: Call<com.example.myapplication.Response>, t: Throwable) {
+                        Toast.makeText(
+                            this@MytubeDetailActivity,
+                            "덧글삭제 실패.",
+                            Toast.LENGTH_LONG
+                        )
+                            .show()
                     }
                 })
+        } else {
+            Toast.makeText(
+                this@MytubeDetailActivity,
+                "로그인이 필요합니다.",
+                Toast.LENGTH_LONG
+            )
+                .show()
         }
     }
 }
